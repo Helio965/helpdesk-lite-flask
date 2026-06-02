@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}HelpDesk Lite{% endblock %}</title>
+  <style>
+    :root { --fg:#1f2933; --muted:#616e7c; --bg:#f5f7fa; --card:#fff; --accent:#2563eb; --border:#d2d6dc; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+           color:var(--fg); background:var(--bg); line-height:1.5; }
+    header.nav { background:var(--card); border-bottom:1px solid var(--border); }
+    header.nav .inner { max-width:960px; margin:0 auto; padding:.8rem 1rem; display:flex;
+           align-items:center; gap:1rem; flex-wrap:wrap; }
+    header.nav a { color:var(--fg); text-decoration:none; }
+    header.nav .brand { font-weight:700; color:var(--accent); }
+    header.nav nav { display:flex; gap:1rem; flex:1; }
+    header.nav .user { color:var(--muted); font-size:.9rem; }
+    main { max-width:960px; margin:1.5rem auto; padding:0 1rem; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:8px;
+            padding:1.2rem; margin-bottom:1rem; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { text-align:left; padding:.55rem .5rem; border-bottom:1px solid var(--border); }
+    th { color:var(--muted); font-size:.85rem; text-transform:uppercase; letter-spacing:.03em; }
+    label { display:block; font-weight:600; margin:.6rem 0 .2rem; }
+    input, textarea, select { width:100%; padding:.5rem; border:1px solid var(--border);
+            border-radius:6px; font:inherit; }
+    textarea { min-height:110px; resize:vertical; }
+    .btn { display:inline-block; background:var(--accent); color:#fff; border:none;
+           padding:.55rem 1rem; border-radius:6px; cursor:pointer; font:inherit; text-decoration:none; }
+    .btn.secondary { background:#e4e7eb; color:var(--fg); }
+    .badge { display:inline-block; padding:.1rem .5rem; border-radius:99px; font-size:.78rem;
+             background:#e4e7eb; color:var(--fg); }
+    .badge.open { background:#dbeafe; color:#1e40af; }
+    .badge.in_progress { background:#fef3c7; color:#92400e; }
+    .badge.resolved { background:#d1fae5; color:#065f46; }
+    .badge.closed { background:#e5e7eb; color:#374151; }
+    .badge.high { background:#fee2e2; color:#991b1b; }
+    .badge.medium { background:#fef3c7; color:#92400e; }
+    .badge.low { background:#e0f2fe; color:#075985; }
+    .flash { padding:.7rem 1rem; border-radius:6px; margin-bottom:.6rem; }
+    .flash.success { background:#d1fae5; color:#065f46; }
+    .flash.error { background:#fee2e2; color:#991b1b; }
+    .errors { color:#991b1b; font-size:.88rem; margin:.3rem 0; }
+    .muted { color:var(--muted); }
+    h1 { font-size:1.5rem; } h2 { font-size:1.2rem; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="inner">
+      <a class="brand" href="{{ url_for('pages.home') }}">HelpDesk Lite</a>
+      <nav>
+        {% if g.user %}
+          <a href="{{ url_for('tickets.list_tickets') }}">Tickets</a>
+          {% if g.user.is_agent %}
+            <a href="{{ url_for('users.list_users') }}">Usuários</a>
+          {% endif %}
+        {% endif %}
+      </nav>
+      {% if g.user %}
+        <span class="user">{{ g.user.name }} ({{ g.user.role }})</span>
+        <form action="{{ url_for('auth.logout') }}" method="post" style="margin:0;">
+          <button class="btn secondary" type="submit">Sair</button>
+        </form>
+      {% else %}
+        <a class="btn" href="{{ url_for('auth.login') }}">Entrar</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# HelpDesk Lite — dependências da versão final
+Flask>=3.1,<4
+Flask-SQLAlchemy>=3.1,<4
+Flask-Migrate>=4.0,<5
+python-dotenv>=1.0,<2
+PyMySQL>=1.1,<2
+# Requerido pelo PyMySQL para autenticação MySQL (caching_sha2_password).
+cryptography>=42
+marshmallow>=4.0,<5
+pytest>=8.0
+pytest-cov>=5.0
+pytest-flask>=1.3

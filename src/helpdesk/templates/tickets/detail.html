@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }} — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>#{{ ticket.id }} — {{ ticket.title }}</h1>
+    <p>
+      <span class="badge {{ ticket.status }}">{{ ticket.status }}</span>
+      <span class="badge {{ ticket.priority }}">{{ ticket.priority }}</span>
+    </p>
+    <p class="muted">
+      Cliente: {{ ticket.customer.name if ticket.customer }} &middot;
+      Agente: {{ ticket.agent.name if ticket.agent else 'não atribuído' }}
+    </p>
+    {% if ticket.description %}<p>{{ ticket.description }}</p>{% endif %}
+  </div>
+
+  {% if g.user.is_agent %}
+    <div class="card">
+      <h2>Gerenciar ticket (agente)</h2>
+      <form method="post" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+          {% for s in statuses %}
+            <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="priority">Prioridade</label>
+        <select id="priority" name="priority">
+          {% for p in priorities %}
+            <option value="{{ p }}" {% if ticket.priority == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="agent_id">Agente responsável</label>
+        <select id="agent_id" name="agent_id">
+          <option value="">— não atribuído —</option>
+          {% for agent in agents %}
+            <option value="{{ agent.id }}" {% if ticket.agent_id == agent.id %}selected{% endif %}>{{ agent.name }}</option>
+          {% endfor %}
+        </select>
+
+        <p style="margin-top:1rem;"><button class="btn" type="submit">Salvar alterações</button></p>
+      </form>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Atualizações</h2>
+    {% for update in ticket.updates %}
+      <div style="border-bottom:1px solid var(--border); padding:.6rem 0;">
+        <strong>{{ update.author.name if update.author }}</strong>
+        <span class="muted">— {{ update.created_at.strftime('%d/%m/%Y %H:%M') if update.created_at }}</span>
+        <div>{{ update.message }}</div>
+      </div>
+    {% else %}
+      <p class="muted">Nenhuma atualização ainda.</p>
+    {% endfor %}
+
+    <form method="post" action="{{ url_for('tickets.add_update', ticket_id=ticket.id) }}" style="margin-top:1rem;">
+      <label for="message">Nova mensagem</label>
+      <input type="text" id="message" name="message" maxlength="255" required>
+      <p style="margin-top:.6rem;"><button class="btn" type="submit">Adicionar atualização</button></p>
+    </form>
+  </div>
+
+  <p><a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">Voltar</a></p>
+{% endblock %}

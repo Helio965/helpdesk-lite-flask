@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Usuários — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h1>Usuários</h1>
+      <a class="btn" href="{{ url_for('users.create_user') }}">Novo usuário</a>
+    </div>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Criado em</th></tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+          <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td><span class="badge">{{ user.role }}</span></td>
+            <td class="muted">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="muted">Nenhum usuário cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
