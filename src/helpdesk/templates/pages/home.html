@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Início — HelpDesk Lite{% endblock %}
+{% block content %}
+  {% if g.user %}
+    <div class="card">
+      <h1>Olá, {{ g.user.name }}!</h1>
+      <p class="muted">
+        {% if g.user.is_agent %}
+          Você está conectado como <strong>agente</strong> e pode ver todos os tickets.
+        {% else %}
+          Você está conectado como <strong>cliente</strong> e vê apenas os seus tickets.
+        {% endif %}
+      </p>
+    </div>
+    <div class="card">
+      <h2>Resumo dos tickets</h2>
+      <p>Total: <strong>{{ summary.total }}</strong></p>
+      <p>Abertos: <strong>{{ summary.open }}</strong> &middot; Fechados: <strong>{{ summary.closed }}</strong></p>
+      <p>
+        <a class="btn" href="{{ url_for('tickets.list_tickets') }}">Ver tickets</a>
+        <a class="btn secondary" href="{{ url_for('tickets.create_ticket') }}">Abrir novo ticket</a>
+      </p>
+    </div>
+  {% else %}
+    <div class="card">
+      <h1>Bem-vindo ao HelpDesk Lite</h1>
+      <p class="muted">Sistema acadêmico de helpdesk para gestão de chamados.</p>
+      <p><a class="btn" href="{{ url_for('auth.login') }}">Entrar para continuar</a></p>
+    </div>
+  {% endif %}
+{% endblock %}

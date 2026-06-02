@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Novo ticket — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card" style="max-width:560px;">
+    <h1>Abrir novo ticket</h1>
+    <form method="post" action="{{ url_for('tickets.create_ticket') }}">
+      <label for="title">Título</label>
+      <input type="text" id="title" name="title" value="{{ form.title or '' }}" required>
+      {% if errors.title %}<div class="errors">{{ errors.title|join(', ') }}</div>{% endif %}
+
+      <label for="description">Descrição</label>
+      <textarea id="description" name="description">{{ form.description or '' }}</textarea>
+      {% if errors.description %}<div class="errors">{{ errors.description|join(', ') }}</div>{% endif %}
+
+      <label for="priority">Prioridade</label>
+      <select id="priority" name="priority">
+        {% for p in priorities %}
+          <option value="{{ p }}" {% if form.priority == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+      {% if errors.priority %}<div class="errors">{{ errors.priority|join(', ') }}</div>{% endif %}
+
+      <p style="margin-top:1rem;">
+        <button class="btn" type="submit">Criar ticket</button>
+        <a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">Cancelar</a>
+      </p>
+    </form>
+  </div>
+{% endblock %}

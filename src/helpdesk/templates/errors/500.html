@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Erro interno — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>500 — Erro interno</h1>
+    <p class="muted">Algo deu errado ao processar sua solicitação. Tente novamente.</p>
+    <p><a class="btn" href="{{ url_for('pages.home') }}">Voltar ao início</a></p>
+  </div>
+{% endblock %}
