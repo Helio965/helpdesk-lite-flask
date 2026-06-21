@@ -14,6 +14,29 @@
     {% if ticket.description %}<p>{{ ticket.description }}</p>{% endif %}
   </div>
 
+  <div class="card">
+    <h2>Ações</h2>
+    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+      {% if ticket.status != 'closed' %}
+        <form method="post" action="{{ url_for('tickets.close_ticket', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn secondary" type="submit">Fechar ticket</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('tickets.reopen_ticket', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn secondary" type="submit">Reabrir ticket</button>
+        </form>
+      {% endif %}
+      {% if g.user.is_agent and ticket.agent_id != g.user.id %}
+        <form method="post" action="{{ url_for('tickets.assign_to_me', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn" type="submit">Atribuir a mim</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
   {% if g.user.is_agent %}
     <div class="card">
       <h2>Gerenciar ticket (agente)</h2>

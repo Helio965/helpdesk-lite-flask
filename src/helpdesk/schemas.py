@@ -12,7 +12,15 @@ Estratégia de segurança:
   validados e atribuem campos sensíveis de forma explícita no servidor.
 """
 
-from marshmallow import EXCLUDE, Schema, fields, pre_load, validate
+from marshmallow import (
+    EXCLUDE,
+    Schema,
+    ValidationError,
+    fields,
+    pre_load,
+    validate,
+    validates_schema,
+)
 
 from .models import TICKET_PRIORITIES, TICKET_STATUSES
 
@@ -97,3 +105,23 @@ class TicketUpdateMessageSchema(_BaseSchema):
     """Mensagem de atualização adicionada ao histórico do ticket."""
 
     message = fields.Str(required=True, validate=validate.Length(min=1, max=255))
+
+
+class PasswordChangeSchema(_BaseSchema):
+    """Troca de senha do próprio usuário autenticado."""
+
+    current_password = fields.Str(required=True, validate=validate.Length(min=1))
+    new_password = fields.Str(required=True, validate=validate.Length(min=6, max=128))
+    confirm_password = fields.Str(required=True, validate=validate.Length(min=1))
+
+    @validates_schema
+    def _passwords_match(self, data, **kwargs):
+        if data.get("new_password") != data.get("confirm_password"):
+            raise ValidationError(
+                "As senhas não coincidem.", field_name="confirm_password"
+            )
+        if data.get("new_password") == data.get("current_password"):
+            raise ValidationError(
+                "A nova senha deve ser diferente da atual.",
+                field_name="new_password",
+            )

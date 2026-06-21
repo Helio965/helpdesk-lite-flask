@@ -2,6 +2,7 @@
 
 from flask import Blueprint, g, render_template
 
+from ...decorators import login_required
 from ...extensions import db
 from ...models import STATUS_CLOSED, STATUS_OPEN, Ticket
 
@@ -39,3 +40,10 @@ def home():
         "closed": closed_count or 0,
     }
     return render_template("pages/home.html", summary=summary)
+
+
+@bp.route("/account")
+@login_required
+def account():
+    """Página de perfil do usuário autenticado."""
+    return render_template("pages/account.html")

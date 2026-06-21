@@ -12,11 +12,14 @@ from flask import (
 )
 from marshmallow import ValidationError
 
+from ...decorators import login_required
 from ...extensions import db, limiter
 from ...models import User
-from ...schemas import UserLoginSchema
+from ...schemas import PasswordChangeSchema, UserLoginSchema
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+_password_schema = PasswordChangeSchema()
 
 
 def _login_rate_limit() -> str:
@@ -81,3 +84,29 @@ def logout():
     g.user = None
     flash("Você saiu da sua conta.", "success")
     return redirect(url_for("auth.login"))
+
+
+@bp.route("/password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    if request.method == "POST":
+        try:
+            data = _password_schema.load(request.form.to_dict())
+        except ValidationError as err:
+            return render_template("auth/password.html", errors=err.messages), 400
+
+        if not g.user.check_password(data["current_password"]):
+            return (
+                render_template(
+                    "auth/password.html",
+                    errors={"current_password": ["Senha atual incorreta."]},
+                ),
+                400,
+            )
+
+        g.user.set_password(data["new_password"])
+        db.session.commit()
+        flash("Senha alterada com sucesso.", "success")
+        return redirect(url_for("pages.account"))
+
+    return render_template("auth/password.html", errors={})
