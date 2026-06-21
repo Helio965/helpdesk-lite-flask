@@ -193,15 +193,20 @@ Criados por `flask seed` (senha de desenvolvimento: **`Senha@123`**):
 | Método      | Rota                          | Acesso              |
 | ----------- | ----------------------------- | ------------------- |
 | GET         | `/`                           | público / logado    |
-| GET/POST    | `/auth/login`                 | público             |
+| GET         | `/account`                    | logado              |
+| GET/POST    | `/auth/login`                 | público (rate-limit)|
 | GET/POST    | `/auth/logout`                | logado              |
+| GET/POST    | `/auth/password`              | logado              |
 | GET         | `/users/`                     | **agente**          |
 | GET/POST    | `/users/create`               | **agente**          |
-| GET         | `/tickets/`                   | logado              |
+| GET         | `/tickets/` (filtros: `status`, `priority`, `assignment`, `q`) | logado |
 | GET/POST    | `/tickets/create`             | logado              |
 | GET         | `/tickets/<id>`               | dono ou agente      |
 | POST        | `/tickets/<id>/update`        | dono ou agente      |
 | POST        | `/tickets/<id>/edit`          | **agente**          |
+| POST        | `/tickets/<id>/assign`        | **agente** (assume) |
+| POST        | `/tickets/<id>/close`         | dono ou agente      |
+| POST        | `/tickets/<id>/reopen`        | dono ou agente      |
 
 ---
 
@@ -211,6 +216,11 @@ Criados por `flask seed` (senha de desenvolvimento: **`Senha@123`**):
 - **Login genérico**: falha de login não revela se o e-mail existe.
 - **Sessão**: apenas `user_id` é guardado; `g.user` é carregado por requisição.
 - **Proteção de rotas** via `login_required` / `agent_required`.
+- **CSRF**: todos os formulários POST exigem token (Flask-WTF / `CSRFProtect`).
+- **Rate limiting** no `POST /auth/login` (Flask-Limiter; `LOGIN_RATE_LIMIT`),
+  retornando `429` ao exceder — mitiga força bruta.
+- **Cabeçalhos de segurança** em toda resposta: `X-Content-Type-Options`,
+  `X-Frame-Options`, `Referrer-Policy` e `Content-Security-Policy`.
 - **Anti mass assignment**: schemas Marshmallow com whitelist e
   `unknown = EXCLUDE`. As rotas **nunca** fazem `Model(**request.form)`;
   campos sensíveis (`role`, `id`, `customer_id`, `status`, `password_hash`,
@@ -223,10 +233,46 @@ Criados por `flask seed` (senha de desenvolvimento: **`Senha@123`**):
 
 ---
 
-## 12. Dependências extra (justificativa)
+## 12. Deploy com Docker
+
+Sobe a aplicação **+ MySQL** com um comando (aplica migrations e popula o
+seed automaticamente no primeiro start):
+
+```bash
+docker compose up --build
+```
+
+Acesse http://localhost:8000 (usuários de exemplo na seção 8).
+
+- `Dockerfile`: imagem Python 3.11-slim servindo via **gunicorn**
+  (`helpdesk:create_app()`).
+- `docker-entrypoint.sh`: aguarda o banco, roda `flask db upgrade` e
+  (se `SEED_ON_START=1`) `flask seed` antes de iniciar o servidor.
+- `docker-compose.yml`: serviços `web` e `db` (MySQL 8) com healthcheck.
+
+---
+
+## 13. Qualidade de código
+
+```bash
+pip install -e ".[dev]"   # ruff, black, pre-commit
+ruff check src tests run.py
+black --check src tests run.py
+pre-commit install        # roda os linters automaticamente em cada commit
+```
+
+A CI (GitHub Actions) tem dois jobs: **lint** (ruff + black) e **test**
+(pytest com gate `--cov-fail-under=80`).
+
+---
+
+## 14. Dependências extra (justificativa)
 
 - **cryptography**: exigida pelo PyMySQL para autenticar em MySQL 8 com
-  `caching_sha2_password`. Já está incluída no `requirements.txt` por isso.
+  `caching_sha2_password`.
+- **Flask-WTF**: proteção CSRF dos formulários.
+- **Flask-Limiter**: rate limiting do login.
+- **gunicorn**: servidor WSGI de produção (usado no Docker).
 
 ---
 

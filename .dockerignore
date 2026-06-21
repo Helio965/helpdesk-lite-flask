@@ -1,0 +1,16 @@
+.git
+.gitignore
+venv/
+.venv/
+venv_desenvolvimento/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+*.crdownload
+.env
+tests/
+*.md
