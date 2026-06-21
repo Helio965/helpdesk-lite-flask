@@ -1,27 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Novo usuário — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card" style="max-width:480px;">
+  <div class="page-header">
     <h1>Novo usuário</h1>
-    <p class="muted">Novos usuários são criados com o perfil <strong>cliente</strong>.</p>
+  </div>
+
+  <div class="card card--form">
+    <p class="field__hint" style="margin-top:0;">Novos usuários são criados com o perfil <strong>cliente</strong>.</p>
     <form method="post" action="{{ url_for('users.create_user') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label for="name">Nome</label>
-      <input type="text" id="name" name="name" value="{{ form.name or '' }}" required>
-      {% if errors.name %}<div class="errors">{{ errors.name|join(', ') }}</div>{% endif %}
 
-      <label for="email">E-mail</label>
-      <input type="email" id="email" name="email" value="{{ form.email or '' }}" required>
-      {% if errors.email %}<div class="errors">{{ errors.email|join(', ') }}</div>{% endif %}
+      <div class="field">
+        <label for="name">Nome</label>
+        <input type="text" id="name" name="name" value="{{ form.name or '' }}" required>
+        {% if errors.name %}<p class="field__error">{{ errors.name|join(', ') }}</p>{% endif %}
+      </div>
 
-      <label for="password">Senha</label>
-      <input type="password" id="password" name="password" required>
-      {% if errors.password %}<div class="errors">{{ errors.password|join(', ') }}</div>{% endif %}
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" value="{{ form.email or '' }}" required>
+        {% if errors.email %}<p class="field__error">{{ errors.email|join(', ') }}</p>{% endif %}
+      </div>
 
-      <p style="margin-top:1rem;">
-        <button class="btn" type="submit">Criar</button>
-        <a class="btn secondary" href="{{ url_for('users.list_users') }}">Cancelar</a>
-      </p>
+      <div class="field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" name="password" required>
+        {% if errors.password %}<p class="field__error">{{ errors.password|join(', ') }}</p>{% endif %}
+      </div>
+
+      <div class="row">
+        <button class="btn btn--primary" type="submit">Criar</button>
+        <a class="btn btn--secondary" href="{{ url_for('users.list_users') }}">Cancelar</a>
+      </div>
     </form>
   </div>
 {% endblock %}

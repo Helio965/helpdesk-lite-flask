@@ -55,6 +55,7 @@ helpdesk_lite/
         ├── decorators.py   # login_required, agent_required
         ├── cli.py          # comandos `flask seed` e `flask create-agent`
         ├── blueprints/     # pages, auth, users, tickets
+        ├── static/         # CSS e JS do frontend (protótipo, servidos localmente)
         └── templates/      # Jinja (base, auth, users, tickets, errors)
 └── tests/                  # pytest (SQLite em memória)
 ```

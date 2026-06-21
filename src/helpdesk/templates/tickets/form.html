@@ -1,30 +1,40 @@
 {% extends "base.html" %}
 {% block title %}Novo ticket — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card" style="max-width:560px;">
+  {% set priority_labels = {'low': 'Baixa', 'medium': 'Média', 'high': 'Alta'} %}
+
+  <div class="page-header">
     <h1>Abrir novo ticket</h1>
+  </div>
+
+  <div class="card card--form">
     <form method="post" action="{{ url_for('tickets.create_ticket') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label for="title">Título</label>
-      <input type="text" id="title" name="title" value="{{ form.title or '' }}" required>
-      {% if errors.title %}<div class="errors">{{ errors.title|join(', ') }}</div>{% endif %}
 
-      <label for="description">Descrição</label>
-      <textarea id="description" name="description">{{ form.description or '' }}</textarea>
-      {% if errors.description %}<div class="errors">{{ errors.description|join(', ') }}</div>{% endif %}
+      <div class="field">
+        <label for="title">Título</label>
+        <input type="text" id="title" name="title" value="{{ form.title or '' }}" placeholder="Resuma o problema" required>
+        {% if errors.title %}<p class="field__error">{{ errors.title|join(', ') }}</p>{% endif %}
+      </div>
 
-      <label for="priority">Prioridade</label>
-      <select id="priority" name="priority">
-        {% for p in priorities %}
-          <option value="{{ p }}" {% if form.priority == p %}selected{% endif %}>{{ p }}</option>
-        {% endfor %}
-      </select>
-      {% if errors.priority %}<div class="errors">{{ errors.priority|join(', ') }}</div>{% endif %}
+      <div class="field">
+        <label for="description">Descrição</label>
+        <textarea id="description" name="description" placeholder="Descreva com detalhes o que está acontecendo...">{{ form.description or '' }}</textarea>
+        {% if errors.description %}<p class="field__error">{{ errors.description|join(', ') }}</p>{% endif %}
+      </div>
 
-      <p style="margin-top:1rem;">
-        <button class="btn" type="submit">Criar ticket</button>
-        <a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">Cancelar</a>
-      </p>
+      <div class="field">
+        <label for="priority">Prioridade</label>
+        <select id="priority" name="priority">
+          {% for p in priorities %}<option value="{{ p }}" {% if form.priority == p %}selected{% endif %}>{{ priority_labels.get(p, p) }}</option>{% endfor %}
+        </select>
+        {% if errors.priority %}<p class="field__error">{{ errors.priority|join(', ') }}</p>{% endif %}
+      </div>
+
+      <div class="row">
+        <button class="btn btn--primary" type="submit">Criar ticket</button>
+        <a class="btn btn--secondary" href="{{ url_for('tickets.list_tickets') }}">Cancelar</a>
+      </div>
     </form>
   </div>
 {% endblock %}

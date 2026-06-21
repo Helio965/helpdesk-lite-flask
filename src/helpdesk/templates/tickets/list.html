@@ -1,84 +1,95 @@
 {% extends "base.html" %}
 {% block title %}Tickets — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+  {% set status_labels = {'open': 'Aberto', 'in_progress': 'Em andamento', 'resolved': 'Resolvido', 'closed': 'Encerrado'} %}
+  {% set priority_labels = {'low': 'Baixa', 'medium': 'Média', 'high': 'Alta'} %}
+
+  <div class="page-header">
+    <div>
       <h1>Tickets</h1>
-      <a class="btn" href="{{ url_for('tickets.create_ticket') }}">Novo ticket</a>
-    </div>
-
-    <form method="get" action="{{ url_for('tickets.list_tickets') }}"
-          style="margin:1rem 0; display:flex; gap:.6rem; flex-wrap:wrap; align-items:flex-end;">
-      <div>
-        <label for="q">Buscar (título)</label>
-        <input type="text" id="q" name="q" value="{{ filters.q }}" style="width:auto;">
-      </div>
-      <div>
-        <label for="status">Status</label>
-        <select id="status" name="status" style="width:auto;">
-          <option value="">todos</option>
-          {% for s in statuses %}<option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
-        </select>
-      </div>
-      <div>
-        <label for="priority">Prioridade</label>
-        <select id="priority" name="priority" style="width:auto;">
-          <option value="">todas</option>
-          {% for p in priorities %}<option value="{{ p }}" {% if filters.priority == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
-        </select>
-      </div>
-      {% if g.user.is_agent %}
-      <div>
-        <label for="assignment">Atribuição</label>
-        <select id="assignment" name="assignment" style="width:auto;">
-          <option value="">todas</option>
-          <option value="mine" {% if filters.assignment == 'mine' %}selected{% endif %}>minhas</option>
-          <option value="unassigned" {% if filters.assignment == 'unassigned' %}selected{% endif %}>não atribuídas</option>
-        </select>
-      </div>
-      {% endif %}
-      <div>
-        <button class="btn" type="submit">Filtrar</button>
-        <a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">Limpar</a>
-      </div>
-    </form>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Título</th>
-          {% if g.user.is_agent %}<th>Cliente</th><th>Agente</th>{% endif %}
-          <th>Status</th><th>Prioridade</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ticket in tickets %}
-          <tr>
-            <td>{{ ticket.id }}</td>
-            <td><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}">{{ ticket.title }}</a></td>
-            {% if g.user.is_agent %}
-              <td>{{ ticket.customer.name if ticket.customer }}</td>
-              <td>{{ ticket.agent.name if ticket.agent else '—' }}</td>
-            {% endif %}
-            <td><span class="badge {{ ticket.status }}">{{ ticket.status }}</span></td>
-            <td><span class="badge {{ ticket.priority }}">{{ ticket.priority }}</span></td>
-          </tr>
-        {% else %}
-          <tr><td colspan="6" class="muted">Nenhum ticket encontrado.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    {% if pagination and pagination.pages > 1 %}
-      <p style="margin-top:1rem;">
-        {% if pagination.has_prev %}
-          <a class="btn secondary" href="{{ url_for('tickets.list_tickets', page=pagination.prev_num, status=filters.status, priority=filters.priority, assignment=filters.assignment, q=filters.q) }}">Anterior</a>
-        {% endif %}
-        <span class="muted">Página {{ pagination.page }} de {{ pagination.pages }}</span>
-        {% if pagination.has_next %}
-          <a class="btn secondary" href="{{ url_for('tickets.list_tickets', page=pagination.next_num, status=filters.status, priority=filters.priority, assignment=filters.assignment, q=filters.q) }}">Próxima</a>
-        {% endif %}
+      <p class="muted">
+        {% if g.user.is_agent %}Todos os chamados do sistema.{% else %}Seus chamados de suporte.{% endif %}
       </p>
-    {% endif %}
+    </div>
+    <a class="btn btn--primary" href="{{ url_for('tickets.create_ticket') }}">+ Novo ticket</a>
   </div>
+
+  <form class="toolbar" method="get" action="{{ url_for('tickets.list_tickets') }}">
+    <div class="field">
+      <label for="q">Buscar (título)</label>
+      <input type="search" id="q" name="q" value="{{ filters.q }}" placeholder="ex.: login">
+    </div>
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">Todos</option>
+        {% for s in statuses %}<option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ status_labels.get(s, s) }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="priority">Prioridade</label>
+      <select id="priority" name="priority">
+        <option value="">Todas</option>
+        {% for p in priorities %}<option value="{{ p }}" {% if filters.priority == p %}selected{% endif %}>{{ priority_labels.get(p, p) }}</option>{% endfor %}
+      </select>
+    </div>
+    {% if g.user.is_agent %}
+      <div class="field">
+        <label for="assignment">Atribuição</label>
+        <select id="assignment" name="assignment">
+          <option value="">Todas</option>
+          <option value="mine" {% if filters.assignment == 'mine' %}selected{% endif %}>Minhas</option>
+          <option value="unassigned" {% if filters.assignment == 'unassigned' %}selected{% endif %}>Não atribuídas</option>
+        </select>
+      </div>
+    {% endif %}
+    <div class="toolbar__actions">
+      <button class="btn btn--primary" type="submit">Filtrar</button>
+      <a class="btn btn--secondary" href="{{ url_for('tickets.list_tickets') }}">Limpar</a>
+    </div>
+  </form>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="table-wrap" style="border:0; border-radius:0;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Título</th>
+            {% if g.user.is_agent %}<th>Cliente</th><th>Agente</th>{% endif %}
+            <th>Status</th><th>Prioridade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in tickets %}
+            <tr>
+              <td class="cell-id">{{ ticket.id }}</td>
+              <td><a href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) }}"><strong>{{ ticket.title }}</strong></a></td>
+              {% if g.user.is_agent %}
+                <td>{{ ticket.customer.name if ticket.customer }}</td>
+                <td>{{ ticket.agent.name if ticket.agent else '—' }}</td>
+              {% endif %}
+              <td><span class="badge {{ ticket.status }}">{{ status_labels.get(ticket.status, ticket.status) }}</span></td>
+              <td><span class="badge {{ ticket.priority }}">{{ priority_labels.get(ticket.priority, ticket.priority) }}</span></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="{{ 6 if g.user.is_agent else 4 }}"><div class="empty">Nenhum ticket encontrado.</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if pagination and pagination.pages > 1 %}
+    <div class="row" style="justify-content:space-between; margin-top:.4rem;">
+      <span class="muted">Página {{ pagination.page }} de {{ pagination.pages }}</span>
+      <div class="row">
+        {% if pagination.has_prev %}
+          <a class="btn btn--secondary btn--sm" href="{{ url_for('tickets.list_tickets', page=pagination.prev_num, status=filters.status, priority=filters.priority, assignment=filters.assignment, q=filters.q) }}">← Anterior</a>
+        {% endif %}
+        {% if pagination.has_next %}
+          <a class="btn btn--secondary btn--sm" href="{{ url_for('tickets.list_tickets', page=pagination.next_num, status=filters.status, priority=filters.priority, assignment=filters.assignment, q=filters.q) }}">Próxima →</a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}
