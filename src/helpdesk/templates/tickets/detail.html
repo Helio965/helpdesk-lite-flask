@@ -18,6 +18,7 @@
     <div class="card">
       <h2>Gerenciar ticket (agente)</h2>
       <form method="post" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="status">Status</label>
         <select id="status" name="status">
           {% for s in statuses %}
@@ -58,6 +59,7 @@
     {% endfor %}
 
     <form method="post" action="{{ url_for('tickets.add_update', ticket_id=ticket.id) }}" style="margin-top:1rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="message">Nova mensagem</label>
       <input type="text" id="message" name="message" maxlength="255" required>
       <p style="margin-top:.6rem;"><button class="btn" type="submit">Adicionar atualização</button></p>

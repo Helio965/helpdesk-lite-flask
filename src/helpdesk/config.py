@@ -51,6 +51,11 @@ class Config:
         )
         self.DEBUG = _as_bool(os.environ.get("FLASK_DEBUG"), default=False)
         self.TICKETS_PER_PAGE = int(os.environ.get("TICKETS_PER_PAGE", "10"))
+        # Segurança: limite de tentativas de login por IP.
+        self.LOGIN_RATE_LIMIT = os.environ.get("LOGIN_RATE_LIMIT", "10 per minute")
+        self.RATELIMIT_ENABLED = _as_bool(
+            os.environ.get("RATELIMIT_ENABLED"), default=True
+        )
 
 
 class TestConfig:
@@ -61,6 +66,10 @@ class TestConfig:
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = False
+    # Rate limiting desligado por padrão nos testes (evita flakiness);
+    # testes específicos reativam via create_app({...}).
+    RATELIMIT_ENABLED = False
+    LOGIN_RATE_LIMIT = "5 per minute"
     # Necessário para assinar a sessão durante os testes.
     SECRET_KEY = "testing-secret-key-not-for-production-only-32+chars"
     TICKETS_PER_PAGE = 10

@@ -16,6 +16,8 @@ dependencies = [
     "PyMySQL>=1.1,<2",
     "cryptography>=42",
     "marshmallow>=4.0,<5",
+    "Flask-WTF>=1.2,<2",
+    "Flask-Limiter>=3.5,<5",
 ]
 
 [project.optional-dependencies]

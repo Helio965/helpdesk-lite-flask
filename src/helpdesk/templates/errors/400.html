@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Requisição inválida — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>400 — Requisição inválida</h1>
+    <p class="muted">
+      Sua sessão pode ter expirado ou o formulário foi enviado sem o token de
+      segurança (CSRF). Volte e tente novamente.
+    </p>
+    <p><a class="btn" href="{{ url_for('pages.home') }}">Voltar ao início</a></p>
+  </div>
+{% endblock %}

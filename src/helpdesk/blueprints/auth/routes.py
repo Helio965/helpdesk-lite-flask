@@ -12,11 +12,18 @@ from flask import (
 )
 from marshmallow import ValidationError
 
-from ...extensions import db
+from ...extensions import db, limiter
 from ...models import User
 from ...schemas import UserLoginSchema
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+def _login_rate_limit() -> str:
+    """Limite de login lido da config (permite ajuste por ambiente)."""
+    from flask import current_app
+
+    return current_app.config.get("LOGIN_RATE_LIMIT", "10 per minute")
 
 _login_schema = UserLoginSchema()
 
@@ -37,6 +44,7 @@ def _safe_next(target: str | None) -> str:
 
 
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit(_login_rate_limit, methods=["POST"])
 def login():
     # Usuário já autenticado não precisa ver o formulário de login.
     if g.get("user") is not None:

@@ -4,6 +4,7 @@
   <div class="card" style="max-width:560px;">
     <h1>Abrir novo ticket</h1>
     <form method="post" action="{{ url_for('tickets.create_ticket') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="title">Título</label>
       <input type="text" id="title" name="title" value="{{ form.title or '' }}" required>
       {% if errors.title %}<div class="errors">{{ errors.title|join(', ') }}</div>{% endif %}

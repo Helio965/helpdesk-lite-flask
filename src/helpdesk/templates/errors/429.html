@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Muitas tentativas — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card">
+    <h1>429 — Muitas tentativas</h1>
+    <p class="muted">
+      Você fez tentativas demais em pouco tempo. Aguarde um momento antes de
+      tentar novamente.
+    </p>
+    <p><a class="btn" href="{{ url_for('pages.home') }}">Voltar ao início</a></p>
+  </div>
+{% endblock %}
