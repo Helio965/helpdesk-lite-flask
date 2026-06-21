@@ -88,9 +88,7 @@ class TicketUpdateSchema(_BaseSchema):
     """
 
     status = fields.Str(load_default=None, validate=validate.OneOf(TICKET_STATUSES))
-    priority = fields.Str(
-        load_default=None, validate=validate.OneOf(TICKET_PRIORITIES)
-    )
+    priority = fields.Str(load_default=None, validate=validate.OneOf(TICKET_PRIORITIES))
     agent_id = fields.Int(load_default=None, allow_none=True)
 
     @pre_load

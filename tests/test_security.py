@@ -1,10 +1,7 @@
 """Testes das proteções de segurança: CSRF, rate limit e headers."""
 
-import pytest
-
 from helpdesk import create_app
 from helpdesk.extensions import db
-from helpdesk.models import ROLE_CUSTOMER, User
 
 BASE_TEST_CONFIG = {
     "TESTING": True,
@@ -33,9 +30,7 @@ def test_csrf_blocks_post_without_token():
     """Com CSRF ativo, POST sem token é rejeitado (400)."""
     app = _make_app(WTF_CSRF_ENABLED=True, RATELIMIT_ENABLED=False)
     client = app.test_client()
-    resp = client.post(
-        "/auth/login", data={"email": "a@b.com", "password": "x"}
-    )
+    resp = client.post("/auth/login", data={"email": "a@b.com", "password": "x"})
     assert resp.status_code == 400
 
 

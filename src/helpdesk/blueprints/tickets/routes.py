@@ -64,9 +64,13 @@ def _ensure_can_view(ticket: Ticket) -> None:
 
 
 def _agents():
-    return db.session.execute(
-        db.select(User).filter_by(role=ROLE_AGENT).order_by(User.name)
-    ).scalars().all()
+    return (
+        db.session.execute(
+            db.select(User).filter_by(role=ROLE_AGENT).order_by(User.name)
+        )
+        .scalars()
+        .all()
+    )
 
 
 @bp.route("/")
@@ -228,7 +232,10 @@ def edit_ticket(ticket_id):
     if agent_id is not None:
         agent = db.session.get(User, agent_id)
         if agent is None or agent.role != ROLE_AGENT:
-            flash("Responsável inválido: deve ser um usuário com perfil de agente.", "error")
+            flash(
+                "Responsável inválido: deve ser um usuário com perfil de agente.",
+                "error",
+            )
             return (
                 render_template(
                     "tickets/detail.html",

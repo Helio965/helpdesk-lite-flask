@@ -21,9 +21,11 @@ _create_schema = UserCreateSchema()
 @bp.route("/")
 @agent_required
 def list_users():
-    users = db.session.execute(
-        db.select(User).order_by(User.created_at.desc())
-    ).scalars().all()
+    users = (
+        db.session.execute(db.select(User).order_by(User.created_at.desc()))
+        .scalars()
+        .all()
+    )
     return render_template("users/list.html", users=users)
 
 

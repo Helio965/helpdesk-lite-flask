@@ -28,6 +28,7 @@ def _login_rate_limit() -> str:
 
     return current_app.config.get("LOGIN_RATE_LIMIT", "10 per minute")
 
+
 _login_schema = UserLoginSchema()
 
 # Mensagem genérica: nunca revela se o e-mail existe ou se a senha está errada.

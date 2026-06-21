@@ -20,9 +20,7 @@ def home():
     if g.user.is_customer:
         base = base.filter_by(customer_id=g.user.id)
 
-    total = db.session.scalar(
-        db.select(db.func.count()).select_from(base.subquery())
-    )
+    total = db.session.scalar(db.select(db.func.count()).select_from(base.subquery()))
     open_count = db.session.scalar(
         db.select(db.func.count()).select_from(
             base.filter_by(status=STATUS_OPEN).subquery()

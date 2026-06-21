@@ -54,9 +54,7 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default=ROLE_CUSTOMER)
     created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
 
-    __table_args__ = (
-        CheckConstraint(_sql_in("role", ROLES), name="ck_users_role"),
-    )
+    __table_args__ = (CheckConstraint(_sql_in("role", ROLES), name="ck_users_role"),)
 
     # Tickets em que o usuário é o cliente (autor do chamado).
     tickets_as_customer = db.relationship(
