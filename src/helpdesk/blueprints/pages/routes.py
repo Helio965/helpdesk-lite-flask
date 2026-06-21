@@ -2,6 +2,7 @@
 
 from flask import Blueprint, g, render_template
 
+from ...decorators import login_required
 from ...extensions import db
 from ...models import STATUS_CLOSED, STATUS_OPEN, Ticket
 
@@ -19,9 +20,7 @@ def home():
     if g.user.is_customer:
         base = base.filter_by(customer_id=g.user.id)
 
-    total = db.session.scalar(
-        db.select(db.func.count()).select_from(base.subquery())
-    )
+    total = db.session.scalar(db.select(db.func.count()).select_from(base.subquery()))
     open_count = db.session.scalar(
         db.select(db.func.count()).select_from(
             base.filter_by(status=STATUS_OPEN).subquery()
@@ -39,3 +38,10 @@ def home():
         "closed": closed_count or 0,
     }
     return render_template("pages/home.html", summary=summary)
+
+
+@bp.route("/account")
+@login_required
+def account():
+    """Página de perfil do usuário autenticado."""
+    return render_template("pages/account.html")

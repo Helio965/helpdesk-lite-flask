@@ -8,7 +8,7 @@ server-side (Marshmallow).
 from flask import Flask, g, render_template, session
 
 from .config import Config
-from .extensions import db, migrate
+from .extensions import csrf, db, limiter, migrate
 
 __all__ = ["create_app"]
 
@@ -27,12 +27,15 @@ def create_app(test_config=None) -> Flask:
     # Extensões
     db.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     # Registra os modelos no metadata para que o Flask-Migrate os detecte.
     from . import models  # noqa: F401
 
     _register_user_loader(app)
     _register_error_handlers(app)
+    _register_security_headers(app)
 
     from .blueprints import register_blueprints
     from .cli import register_cli
@@ -75,6 +78,17 @@ def _register_user_loader(app: Flask) -> None:
 
 
 def _register_error_handlers(app: Flask) -> None:
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(error):
+        # Token CSRF ausente/inválido: trata como requisição inválida (400).
+        return render_template("errors/400.html", reason=error.description), 400
+
+    @app.errorhandler(429)
+    def too_many_requests(error):
+        return render_template("errors/429.html"), 429
+
     @app.errorhandler(403)
     def forbidden(error):
         return render_template("errors/403.html"), 403
@@ -87,3 +101,20 @@ def _register_error_handlers(app: Flask) -> None:
     def server_error(error):
         db.session.rollback()
         return render_template("errors/500.html"), 500
+
+
+def _register_security_headers(app: Flask) -> None:
+    """Adiciona cabeçalhos de segurança em todas as respostas."""
+
+    @app.after_request
+    def set_security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
+        # CSP simples: a UI usa apenas CSS inline próprio, sem scripts externos.
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; form-action 'self'; frame-ancestors 'none'",
+        )
+        return response

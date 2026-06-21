@@ -26,6 +26,8 @@ from ...decorators import agent_required, login_required
 from ...extensions import db
 from ...models import (
     ROLE_AGENT,
+    STATUS_CLOSED,
+    STATUS_IN_PROGRESS,
     STATUS_OPEN,
     TICKET_PRIORITIES,
     TICKET_STATUSES,
@@ -62,9 +64,13 @@ def _ensure_can_view(ticket: Ticket) -> None:
 
 
 def _agents():
-    return db.session.execute(
-        db.select(User).filter_by(role=ROLE_AGENT).order_by(User.name)
-    ).scalars().all()
+    return (
+        db.session.execute(
+            db.select(User).filter_by(role=ROLE_AGENT).order_by(User.name)
+        )
+        .scalars()
+        .all()
+    )
 
 
 @bp.route("/")
@@ -73,14 +79,43 @@ def list_tickets():
     page = request.args.get("page", 1, type=int)
     per_page = current_app.config.get("TICKETS_PER_PAGE", 10)
 
+    status = request.args.get("status", "")
+    priority = request.args.get("priority", "")
+    assignment = request.args.get("assignment", "")
+    q = (request.args.get("q") or "").strip()
+
     query = db.select(Ticket).order_by(Ticket.created_at.desc())
     if g.user.is_customer:
         # Cliente enxerga somente os próprios tickets.
         query = query.filter_by(customer_id=g.user.id)
 
+    # Filtros (ignora valores fora do domínio).
+    if status in TICKET_STATUSES:
+        query = query.filter_by(status=status)
+    if priority in TICKET_PRIORITIES:
+        query = query.filter_by(priority=priority)
+    if g.user.is_agent:
+        if assignment == "mine":
+            query = query.filter_by(agent_id=g.user.id)
+        elif assignment == "unassigned":
+            query = query.filter(Ticket.agent_id.is_(None))
+    if q:
+        query = query.filter(Ticket.title.ilike(f"%{q}%"))
+
     pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+    filters = {
+        "status": status,
+        "priority": priority,
+        "assignment": assignment,
+        "q": q,
+    }
     return render_template(
-        "tickets/list.html", tickets=pagination.items, pagination=pagination
+        "tickets/list.html",
+        tickets=pagination.items,
+        pagination=pagination,
+        filters=filters,
+        statuses=TICKET_STATUSES,
+        priorities=TICKET_PRIORITIES,
     )
 
 
@@ -197,7 +232,10 @@ def edit_ticket(ticket_id):
     if agent_id is not None:
         agent = db.session.get(User, agent_id)
         if agent is None or agent.role != ROLE_AGENT:
-            flash("Responsável inválido: deve ser um usuário com perfil de agente.", "error")
+            flash(
+                "Responsável inválido: deve ser um usuário com perfil de agente.",
+                "error",
+            )
             return (
                 render_template(
                     "tickets/detail.html",
@@ -221,4 +259,41 @@ def edit_ticket(ticket_id):
 
     db.session.commit()
     flash("Ticket atualizado.", "success")
+    return redirect(url_for("tickets.ticket_detail", ticket_id=ticket.id))
+
+
+@bp.route("/<int:ticket_id>/assign", methods=["POST"])
+@agent_required
+def assign_to_me(ticket_id):
+    """Agente assume o ticket (atribui a si mesmo)."""
+    ticket = _get_ticket_or_404(ticket_id)
+    ticket.agent_id = g.user.id
+    if ticket.status == STATUS_OPEN:
+        ticket.status = STATUS_IN_PROGRESS
+    db.session.commit()
+    flash("Ticket atribuído a você.", "success")
+    return redirect(url_for("tickets.ticket_detail", ticket_id=ticket.id))
+
+
+@bp.route("/<int:ticket_id>/close", methods=["POST"])
+@login_required
+def close_ticket(ticket_id):
+    """Fecha o ticket. Permitido ao dono (cliente) ou a qualquer agente."""
+    ticket = _get_ticket_or_404(ticket_id)
+    _ensure_can_view(ticket)
+    ticket.status = STATUS_CLOSED
+    db.session.commit()
+    flash("Ticket fechado.", "success")
+    return redirect(url_for("tickets.ticket_detail", ticket_id=ticket.id))
+
+
+@bp.route("/<int:ticket_id>/reopen", methods=["POST"])
+@login_required
+def reopen_ticket(ticket_id):
+    """Reabre o ticket. Permitido ao dono (cliente) ou a qualquer agente."""
+    ticket = _get_ticket_or_404(ticket_id)
+    _ensure_can_view(ticket)
+    ticket.status = STATUS_OPEN
+    db.session.commit()
+    flash("Ticket reaberto.", "success")
     return redirect(url_for("tickets.ticket_detail", ticket_id=ticket.id))

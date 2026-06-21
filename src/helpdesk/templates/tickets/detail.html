@@ -14,10 +14,34 @@
     {% if ticket.description %}<p>{{ ticket.description }}</p>{% endif %}
   </div>
 
+  <div class="card">
+    <h2>Ações</h2>
+    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+      {% if ticket.status != 'closed' %}
+        <form method="post" action="{{ url_for('tickets.close_ticket', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn secondary" type="submit">Fechar ticket</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('tickets.reopen_ticket', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn secondary" type="submit">Reabrir ticket</button>
+        </form>
+      {% endif %}
+      {% if g.user.is_agent and ticket.agent_id != g.user.id %}
+        <form method="post" action="{{ url_for('tickets.assign_to_me', ticket_id=ticket.id) }}" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn" type="submit">Atribuir a mim</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
   {% if g.user.is_agent %}
     <div class="card">
       <h2>Gerenciar ticket (agente)</h2>
       <form method="post" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label for="status">Status</label>
         <select id="status" name="status">
           {% for s in statuses %}
@@ -58,6 +82,7 @@
     {% endfor %}
 
     <form method="post" action="{{ url_for('tickets.add_update', ticket_id=ticket.id) }}" style="margin-top:1rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="message">Nova mensagem</label>
       <input type="text" id="message" name="message" maxlength="255" required>
       <p style="margin-top:.6rem;"><button class="btn" type="submit">Adicionar atualização</button></p>

@@ -56,11 +56,13 @@
           {% if g.user.is_agent %}
             <a href="{{ url_for('users.list_users') }}">Usuários</a>
           {% endif %}
+          <a href="{{ url_for('pages.account') }}">Minha conta</a>
         {% endif %}
       </nav>
       {% if g.user %}
         <span class="user">{{ g.user.name }} ({{ g.user.role }})</span>
         <form action="{{ url_for('auth.logout') }}" method="post" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn secondary" type="submit">Sair</button>
         </form>
       {% else %}

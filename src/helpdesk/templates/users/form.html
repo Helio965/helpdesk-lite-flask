@@ -5,6 +5,7 @@
     <h1>Novo usuário</h1>
     <p class="muted">Novos usuários são criados com o perfil <strong>cliente</strong>.</p>
     <form method="post" action="{{ url_for('users.create_user') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="name">Nome</label>
       <input type="text" id="name" name="name" value="{{ form.name or '' }}" required>
       {% if errors.name %}<div class="errors">{{ errors.name|join(', ') }}</div>{% endif %}

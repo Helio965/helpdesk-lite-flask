@@ -1,7 +1,5 @@
 """Testes de autenticação por sessão."""
 
-from helpdesk.models import User
-
 
 def test_login_success_sets_session(client, customer_user):
     resp = client.post(

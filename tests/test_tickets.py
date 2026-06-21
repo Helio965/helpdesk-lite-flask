@@ -51,7 +51,9 @@ def test_new_ticket_starts_open(logged_customer):
     assert ticket.status == "open"
 
 
-def test_customer_cannot_set_other_customer_id(logged_customer, customer_user, other_customer_user):
+def test_customer_cannot_set_other_customer_id(
+    logged_customer, customer_user, other_customer_user
+):
     """customer_id injetado é ignorado: ticket pertence ao usuário logado."""
     resp = logged_customer.post(
         "/tickets/create",
@@ -74,7 +76,9 @@ def test_customer_cannot_set_other_customer_id(logged_customer, customer_user, o
 
 
 # --- listagem / visibilidade ----------------------------------------------
-def test_customer_lists_only_own_tickets(logged_customer, customer_user, other_customer_user):
+def test_customer_lists_only_own_tickets(
+    logged_customer, customer_user, other_customer_user
+):
     _make_ticket(customer_user, title="Ticket do cliente logado")
     _make_ticket(other_customer_user, title="Ticket de outro cliente")
     resp = logged_customer.get("/tickets/")

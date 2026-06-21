@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Minha conta — HelpDesk Lite{% endblock %}
+{% block content %}
+  <div class="card" style="max-width:520px;">
+    <h1>Minha conta</h1>
+    <table>
+      <tr><th>Nome</th><td>{{ g.user.name }}</td></tr>
+      <tr><th>E-mail</th><td>{{ g.user.email }}</td></tr>
+      <tr><th>Perfil</th><td><span class="badge">{{ g.user.role }}</span></td></tr>
+      <tr><th>Criado em</th><td>{{ g.user.created_at.strftime('%d/%m/%Y %H:%M') if g.user.created_at }}</td></tr>
+    </table>
+    <p style="margin-top:1rem;">
+      <a class="btn" href="{{ url_for('auth.change_password') }}">Trocar senha</a>
+    </p>
+  </div>
+{% endblock %}
