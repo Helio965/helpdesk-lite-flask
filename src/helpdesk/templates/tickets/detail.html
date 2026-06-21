@@ -1,93 +1,117 @@
 {% extends "base.html" %}
 {% block title %}Ticket #{{ ticket.id }} — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card">
-    <h1>#{{ ticket.id }} — {{ ticket.title }}</h1>
-    <p>
-      <span class="badge {{ ticket.status }}">{{ ticket.status }}</span>
-      <span class="badge {{ ticket.priority }}">{{ ticket.priority }}</span>
-    </p>
-    <p class="muted">
-      Cliente: {{ ticket.customer.name if ticket.customer }} &middot;
-      Agente: {{ ticket.agent.name if ticket.agent else 'não atribuído' }}
-    </p>
-    {% if ticket.description %}<p>{{ ticket.description }}</p>{% endif %}
+  {% set status_labels = {'open': 'Aberto', 'in_progress': 'Em andamento', 'resolved': 'Resolvido', 'closed': 'Encerrado'} %}
+  {% set priority_labels = {'low': 'Baixa', 'medium': 'Média', 'high': 'Alta'} %}
+
+  <div class="page-header">
+    <div>
+      <p class="muted" style="margin:0;">Ticket #{{ ticket.id }}</p>
+      <h1 style="margin:.1rem 0 0;">{{ ticket.title }}</h1>
+    </div>
+    <a class="btn btn--secondary" href="{{ url_for('tickets.list_tickets') }}">← Voltar</a>
   </div>
 
-  <div class="card">
-    <h2>Ações</h2>
-    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-      {% if ticket.status != 'closed' %}
-        <form method="post" action="{{ url_for('tickets.close_ticket', ticket_id=ticket.id) }}" style="margin:0;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn secondary" type="submit">Fechar ticket</button>
-        </form>
-      {% else %}
-        <form method="post" action="{{ url_for('tickets.reopen_ticket', ticket_id=ticket.id) }}" style="margin:0;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn secondary" type="submit">Reabrir ticket</button>
-        </form>
-      {% endif %}
-      {% if g.user.is_agent and ticket.agent_id != g.user.id %}
-        <form method="post" action="{{ url_for('tickets.assign_to_me', ticket_id=ticket.id) }}" style="margin:0;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn" type="submit">Atribuir a mim</button>
-        </form>
-      {% endif %}
-    </div>
-  </div>
-
-  {% if g.user.is_agent %}
-    <div class="card">
-      <h2>Gerenciar ticket (agente)</h2>
-      <form method="post" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="status">Status</label>
-        <select id="status" name="status">
-          {% for s in statuses %}
-            <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
-
-        <label for="priority">Prioridade</label>
-        <select id="priority" name="priority">
-          {% for p in priorities %}
-            <option value="{{ p }}" {% if ticket.priority == p %}selected{% endif %}>{{ p }}</option>
-          {% endfor %}
-        </select>
-
-        <label for="agent_id">Agente responsável</label>
-        <select id="agent_id" name="agent_id">
-          <option value="">— não atribuído —</option>
-          {% for agent in agents %}
-            <option value="{{ agent.id }}" {% if ticket.agent_id == agent.id %}selected{% endif %}>{{ agent.name }}</option>
-          {% endfor %}
-        </select>
-
-        <p style="margin-top:1rem;"><button class="btn" type="submit">Salvar alterações</button></p>
-      </form>
-    </div>
-  {% endif %}
-
-  <div class="card">
-    <h2>Atualizações</h2>
-    {% for update in ticket.updates %}
-      <div style="border-bottom:1px solid var(--border); padding:.6rem 0;">
-        <strong>{{ update.author.name if update.author }}</strong>
-        <span class="muted">— {{ update.created_at.strftime('%d/%m/%Y %H:%M') if update.created_at }}</span>
-        <div>{{ update.message }}</div>
+  <div class="grid grid--sidebar">
+    <div>
+      <div class="card">
+        <div class="row" style="gap:.5rem;">
+          <span class="badge {{ ticket.status }}">{{ status_labels.get(ticket.status, ticket.status) }}</span>
+          <span class="badge {{ ticket.priority }}">{{ priority_labels.get(ticket.priority, ticket.priority) }}</span>
+        </div>
+        <ul class="meta">
+          <li>Cliente: <b>{{ ticket.customer.name if ticket.customer }}</b></li>
+          <li>Agente: <b>{{ ticket.agent.name if ticket.agent else 'não atribuído' }}</b></li>
+        </ul>
+        {% if ticket.description %}
+          <hr class="divider">
+          <p style="white-space:pre-line;">{{ ticket.description }}</p>
+        {% endif %}
       </div>
-    {% else %}
-      <p class="muted">Nenhuma atualização ainda.</p>
-    {% endfor %}
 
-    <form method="post" action="{{ url_for('tickets.add_update', ticket_id=ticket.id) }}" style="margin-top:1rem;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label for="message">Nova mensagem</label>
-      <input type="text" id="message" name="message" maxlength="255" required>
-      <p style="margin-top:.6rem;"><button class="btn" type="submit">Adicionar atualização</button></p>
-    </form>
+      <div class="card">
+        <div class="card__title"><h2>Histórico</h2></div>
+        <div class="timeline">
+          {% for update in ticket.updates %}
+            <div class="update">
+              <span class="avatar">{{ update.author.name[0]|upper if update.author and update.author.name else '?' }}</span>
+              <div class="update__body">
+                <div class="update__head">
+                  <span class="update__author">{{ update.author.name if update.author }}</span>
+                  <span class="update__time">{{ update.created_at.strftime('%d/%m/%Y %H:%M') if update.created_at }}</span>
+                </div>
+                <div>{{ update.message }}</div>
+              </div>
+            </div>
+          {% else %}
+            <p class="empty">Nenhuma atualização ainda. Seja o primeiro a comentar.</p>
+          {% endfor %}
+        </div>
+
+        <hr class="divider">
+        <form method="post" action="{{ url_for('tickets.add_update', ticket_id=ticket.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="field">
+            <label for="message">Nova mensagem</label>
+            <input type="text" id="message" name="message" maxlength="255" placeholder="Escreva uma atualização..." required>
+          </div>
+          <button class="btn btn--primary" type="submit">Adicionar atualização</button>
+        </form>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div class="card__title"><h2>Ações</h2></div>
+        <div class="stack">
+          {% if ticket.status != 'closed' %}
+            <form class="inline-form" method="post" action="{{ url_for('tickets.close_ticket', ticket_id=ticket.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--danger btn--block" type="submit">Encerrar ticket</button>
+            </form>
+          {% else %}
+            <form class="inline-form" method="post" action="{{ url_for('tickets.reopen_ticket', ticket_id=ticket.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--secondary btn--block" type="submit">Reabrir ticket</button>
+            </form>
+          {% endif %}
+          {% if g.user.is_agent and ticket.agent_id != g.user.id %}
+            <form class="inline-form" method="post" action="{{ url_for('tickets.assign_to_me', ticket_id=ticket.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn--primary btn--block" type="submit">Atribuir a mim</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if g.user.is_agent %}
+        <div class="card">
+          <div class="card__title"><h2>Gerenciar (agente)</h2></div>
+          <form method="post" action="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="field">
+              <label for="status">Status</label>
+              <select id="status" name="status">
+                {% for s in statuses %}<option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ status_labels.get(s, s) }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="priority">Prioridade</label>
+              <select id="priority" name="priority">
+                {% for p in priorities %}<option value="{{ p }}" {% if ticket.priority == p %}selected{% endif %}>{{ priority_labels.get(p, p) }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="agent_id">Agente responsável</label>
+              <select id="agent_id" name="agent_id">
+                <option value="">— não atribuído —</option>
+                {% for agent in agents %}<option value="{{ agent.id }}" {% if ticket.agent_id == agent.id %}selected{% endif %}>{{ agent.name }}</option>{% endfor %}
+              </select>
+            </div>
+            <button class="btn btn--primary btn--block" type="submit">Salvar alterações</button>
+          </form>
+        </div>
+      {% endif %}
+    </aside>
   </div>
-
-  <p><a class="btn secondary" href="{{ url_for('tickets.list_tickets') }}">Voltar</a></p>
 {% endblock %}

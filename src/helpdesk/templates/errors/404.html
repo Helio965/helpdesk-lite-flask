@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Não encontrado — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card">
-    <h1>404 — Não encontrado</h1>
+  <div class="card card--narrow" style="margin:2rem auto; text-align:center;">
+    <div style="font-size:3rem; font-weight:800; color:var(--primary-600);">404</div>
+    <h1>Página não encontrada</h1>
     <p class="muted">A página ou o recurso solicitado não existe.</p>
-    <p><a class="btn" href="{{ url_for('pages.home') }}">Voltar ao início</a></p>
+    <a class="btn btn--primary" href="{{ url_for('pages.home') }}">Voltar ao início</a>
   </div>
 {% endblock %}

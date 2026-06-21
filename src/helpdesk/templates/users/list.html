@@ -1,28 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Usuários — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+  <div class="page-header">
+    <div>
       <h1>Usuários</h1>
-      <a class="btn" href="{{ url_for('users.create_user') }}">Novo usuário</a>
+      <p class="muted">Gestão de contas (acesso restrito a agentes).</p>
     </div>
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Criado em</th></tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-          <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-            <td><span class="badge">{{ user.role }}</span></td>
-            <td class="muted">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at }}</td>
-          </tr>
-        {% else %}
-          <tr><td colspan="5" class="muted">Nenhum usuário cadastrado.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <a class="btn btn--primary" href="{{ url_for('users.create_user') }}">+ Novo usuário</a>
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="table-wrap" style="border:0; border-radius:0;">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Criado em</th></tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td class="cell-id">{{ user.id }}</td>
+              <td>
+                <span class="row" style="gap:.5rem;">
+                  <span class="avatar">{{ user.name[0]|upper if user.name else '?' }}</span>
+                  <strong>{{ user.name }}</strong>
+                </span>
+              </td>
+              <td>{{ user.email }}</td>
+              <td><span class="badge plain">{{ user.role }}</span></td>
+              <td class="muted">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5"><div class="empty">Nenhum usuário cadastrado.</div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 {% endblock %}

@@ -1,16 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Minha conta — HelpDesk Lite{% endblock %}
 {% block content %}
-  <div class="card" style="max-width:520px;">
+  <div class="page-header">
     <h1>Minha conta</h1>
-    <table>
+  </div>
+
+  <div class="card card--narrow">
+    <div class="row" style="gap:.9rem; margin-bottom:1rem;">
+      <span class="avatar" style="width:52px; height:52px; font-size:1.4rem;">
+        {{ g.user.name[0]|upper if g.user.name else '?' }}
+      </span>
+      <div>
+        <strong style="font-size:1.1rem;">{{ g.user.name }}</strong>
+        <div><span class="badge plain">{{ g.user.role }}</span></div>
+      </div>
+    </div>
+
+    <table class="data-list">
       <tr><th>Nome</th><td>{{ g.user.name }}</td></tr>
       <tr><th>E-mail</th><td>{{ g.user.email }}</td></tr>
-      <tr><th>Perfil</th><td><span class="badge">{{ g.user.role }}</span></td></tr>
-      <tr><th>Criado em</th><td>{{ g.user.created_at.strftime('%d/%m/%Y %H:%M') if g.user.created_at }}</td></tr>
+      <tr><th>Perfil</th><td>{{ g.user.role }}</td></tr>
+      <tr><th>Criado em</th><td>{{ g.user.created_at.strftime('%d/%m/%Y %H:%M') if g.user.created_at else '—' }}</td></tr>
     </table>
-    <p style="margin-top:1rem;">
-      <a class="btn" href="{{ url_for('auth.change_password') }}">Trocar senha</a>
-    </p>
+
+    <hr class="divider">
+    <a class="btn btn--primary" href="{{ url_for('auth.change_password') }}">Trocar senha</a>
   </div>
 {% endblock %}
